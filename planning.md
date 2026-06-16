@@ -195,7 +195,11 @@ Planning Loop ──────────────────────
 
 **Milestone 3 — Individual tool implementations:**
 
+I’ll use Claude to help implement each tool one at a time. For each tool, I’ll give Claude the matching tool spec from this planning doc, including what the tool does, its inputs, return value, and failure mode. For `search_listings`, I’ll also tell it to use `load_listings()` instead of rewriting the data loading logic. I expect Claude to produce code for each function in `tools.py`. Before trusting the code, I’ll check that each function follows the exact input parameters from the starter file and handles its failure case, then I’ll run pytest tests for normal and failure cases.
+
+
 **Milestone 4 — Planning loop and state management:**
+I will use Claude to help wire the tools together into the planning loop. I’ll give it my Architecture diagram, Planning Loop section, State Management section, and Error Handling table from planning.md. I expect it to produce code that calls `search_listings` first, stops early if there are no results, saves the top result in session state, passes that item into `suggest_outfit`, then passes the outfit and item into `create_fit_card`. I’ll verify the code by checking that state is passed between steps correctly and that the agent stops instead of continuing when search returns no results.
 
 ---
 
