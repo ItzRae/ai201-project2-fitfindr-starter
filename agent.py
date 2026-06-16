@@ -18,7 +18,12 @@ Usage (once implemented):
     print(result["error"])   # None on success
 """
 
-from tools import search_listings, suggest_outfit, create_fit_card
+import json
+
+from tools import _get_groq_client, search_listings, suggest_outfit, create_fit_card
+from utils.data_loader import get_example_wardrobe, get_empty_wardrobe
+import re  # for regex parsing
+# load api key 
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -46,6 +51,33 @@ def _new_session(query: str, wardrobe: dict) -> dict:
 
 
 # ── planning loop ─────────────────────────────────────────────────────────────
+
+
+def _parse_query(query: str) -> dict:
+    client = _get_groq_client()
+
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Extract search parameters from a clothing query. "
+                    "Return ONLY valid JSON with exactly these keys: "
+                    "description (str), size (str or null), max_price (float or null). "
+                    "description should be just the item type and style keywords — "
+                    "no prices, no sizes, no filler words like 'looking for'."
+                ),
+            },
+            {"role": "user", "content": query},
+        ],
+        temperature=0,
+    )
+
+    raw = response.choices[0].message.content.strip()
+    raw = re.sub(r"```json|```", "", raw).strip()
+    return json.loads(raw)
 
 def run_agent(query: str, wardrobe: dict) -> dict:
     """
@@ -94,7 +126,54 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     """
     # TODO: implement the planning loop
     session = _new_session(query, wardrobe)
-    session["error"] = "Planning loop not yet implemented."
+
+    # Step 2: LLM-based parsing
+    try:
+        parsed = _parse_query(query)
+    except Exception as e:
+        session["error"] = f"Could not parse your request: {e}"
+        return session
+
+    session["parsed"] = parsed
+
+    results = search_listings(
+        description=parsed["description"],
+        size=parsed["size"],
+        max_price=parsed["max_price"],
+    )
+    session["search_results"] = results
+
+    if not results:
+        session["error"] = (
+            f"No listings found for '{parsed['description']}'"
+            + (f" in size {parsed['size']}" if parsed["size"] else "")
+            + (f" under ${parsed['max_price']:.2f}" if parsed["max_price"] else "")
+            + ". Try a broader description, a different size, or a higher price limit."
+        )
+        return session
+
+    selected_item = results[0]
+    session["selected_item"] = selected_item
+
+
+    # print("SEARCH RESULT:")
+    # print(selected_item)
+
+    # print("\nOUTFIT INPUT:")
+    # print(session["selected_item"])
+
+    session["outfit_suggestion"] = suggest_outfit(new_item=selected_item, wardrobe=wardrobe)
+
+    # print("\nOUTFIT OUTPUT:")
+    # print(session["outfit_suggestion"])
+  
+    # print("\nFIT CARD INPUT ITEM:")
+    # print(session["selected_item"])
+
+    # print("\nFIT CARD INPUT OUTFIT:")
+    # print(session["outfit_suggestion"])
+    session["fit_card"] = create_fit_card(outfit=session["outfit_suggestion"], new_item=selected_item)
+
     return session
 
 

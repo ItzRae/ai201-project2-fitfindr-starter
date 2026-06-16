@@ -84,16 +84,21 @@ def search_listings(
     keywords = set(description.lower().split())
 
     def score(listing: dict) -> int:
-        searchable = " ".join([
-            listing.get("title", ""),
-            listing.get("description", ""),
-            listing.get("category", ""),
-            " ".join(listing.get("style_tags", [])),
-            " ".join(listing.get("colors", [])),
-            listing.get("brand", "") or "",
-        ]).lower()
+        # Weight fields by specificity — title matches matter most
+        fields = [
+            (listing.get("title", ""), 3),
+            (listing.get("category", ""), 2),
+            (" ".join(listing.get("style_tags", [])), 2),
+            (listing.get("description", ""), 1),
+            (" ".join(listing.get("colors", [])), 1),
+            (listing.get("brand", "") or "", 1),
+        ]
 
-        return sum(1 for kw in keywords if kw in searchable)
+        total = 0
+        for text, weight in fields:
+            text_lower = text.lower()
+            total += sum(weight for kw in keywords if kw in text_lower)
+        return total
 
     scored = [(score(listing), listing) for listing in filtered]
     results = [listing for s, listing in sorted(scored, key=lambda x: -x[0]) if s > 0]
@@ -128,12 +133,13 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
 
     Before writing code, fill in the Tool 2 section of planning.md.
     """
+    print("suggest_outfit called")
+
     
     if not new_item:
         return "I need a valid listing before I can suggest an outfit. Try searching for an item first."
 
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
+    client = _get_groq_client()
     item_summary = (
         f"Title: {new_item.get('title', 'Unknown')}\n"
         f"Category: {new_item.get('category', 'Unknown')}\n"
@@ -178,7 +184,7 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
                     {"role": "system", "content": "You are a helpful fashion styling assistant."},
                     {"role": "user", "content": prompt},
                 ],
-            ),
+            )
         
         return response.choices[0].message.content
 
@@ -188,6 +194,8 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
             f"{new_item.get('title', 'this item')} would pair well with simple basics "
             f"like jeans, sneakers, or a lightweight jacket."
         )
+    
+    
 
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
@@ -219,13 +227,15 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
 
     Before writing code, fill in the Tool 3 section of planning.md.
     """
+    print("create_fit_card called")
+
     if not outfit or not outfit.strip():
         return "Couldn't create a fit card — no outfit suggestion was provided. Try running suggest_outfit first."
 
     if not new_item:
         return "Couldn't create a fit card — no item details were provided. Try searching for an item first."
 
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    client = _get_groq_client()
 
     title = new_item.get("title", "this thrifted find")
     price = new_item.get("price")

@@ -214,11 +214,11 @@ Write out what a full user interaction looks like from start to finish — tool 
 
 **Step 1:**
 <!-- What does the agent do first? Which tool is called? With what input? -->
-The agent first calls search_listings() to find matching items- it will search for a vintage graphic tee in size M with a maximum price of $30 and returns a list of matching listings sorted by relevance.
+The agent first calls search_listings() to find matching items- it will search for a vintage graphic tee with a maximum price of $30 and returns a list of matching listings sorted by relevance.
 
 **Step 2:**
 <!-- What happens next? What was returned from step 1? What tool is called now?-->
-The search tool returns several matching listings. The agent selects the top result (e.g a faded band tee for $22) and calls suggest_outfit() using that item along with the user's wardrobe information (baggy jeans and chunky sneakers). 
+The search tool returns several matching listings. The agent selects the top result (e.g a faded band tee for $22 or graphic tee) and calls suggest_outfit() using that item along with the user's wardrobe information (baggy jeans and chunky sneakers). 
 
 **Step 3:**
 <!-- Continue until the full interaction is complete -->
