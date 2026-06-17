@@ -18,10 +18,10 @@ Usage (once implemented):
     print(result["error"])   # None on success
 """
 
-import json
+import json                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 
 from tools import _get_groq_client, search_listings, suggest_outfit, create_fit_card
-from utils.data_loader import get_example_wardrobe, get_empty_wardrobe
+from utils.data_loader import get_example_wardrobe
 import re  # for regex parsing
 # load api key 
 
@@ -173,6 +173,12 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     # print("\nFIT CARD INPUT OUTFIT:")
     # print(session["outfit_suggestion"])
     session["fit_card"] = create_fit_card(outfit=session["outfit_suggestion"], new_item=selected_item)
+
+    # temporary demo prints
+    print("\n=== SESSION STATE ===")
+    print(f"selected_item: {session['selected_item']['title']}")
+    print(f"outfit_suggestion: {session['outfit_suggestion'][:100]}")
+    print(f"fit_card: {session['fit_card'][:100]}")
 
     return session
 

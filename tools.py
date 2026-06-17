@@ -133,8 +133,6 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
 
     Before writing code, fill in the Tool 2 section of planning.md.
     """
-    print("suggest_outfit called")
-
     
     if not new_item:
         return "I need a valid listing before I can suggest an outfit. Try searching for an item first."
@@ -227,8 +225,6 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
 
     Before writing code, fill in the Tool 3 section of planning.md.
     """
-    print("create_fit_card called")
-
     if not outfit or not outfit.strip():
         return "Couldn't create a fit card — no outfit suggestion was provided. Try running suggest_outfit first."
 

@@ -66,6 +66,7 @@ Turns the outfit suggestion into a polished and short fit card or caption that t
 **Input parameters:**
 <!-- List each parameter, its type, and what it represents -->
 - `outfit` (...): The outfit recommendation returned by suggest_outfit, including the new item, wardrobe pieces, styling notes, and overall vibe
+`new_item` (...): The selected listing from search_listings
 
 **What it returns:**
 <!-- Describe the return value -->
